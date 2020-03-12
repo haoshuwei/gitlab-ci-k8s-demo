@@ -1,0 +1,38 @@
+image: docker:stable
+stages:
+  - package
+  - docker_build
+  - deploy_k8s
+variables:
+  KUBECONFIG: /etc/deploy/config
+  MAVEN_OPTS: "-Dmaven.repo.local=/opt/cache/.m2/repository"
+mvn_build_job:
+  image: maven:3.6.2-jdk-14
+  stage: package
+  tags:
+    - k8s-runner
+  script:
+    - mvn package -B -DskipTests
+    - cp target/demo.war /opt/cache
+docker_build_job:
+  image: docker:latest
+  stage: docker_build
+  tags:
+    - k8s-runner
+  script:
+    - docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD registry.cn-beijing.aliyuncs.com
+    - mkdir target
+    - cp /opt/cache/demo.war target/demo.war
+    - docker build -t registry.cn-beijing.aliyuncs.com/haoshuwei24/gitlab-java-demo:$CI_PIPELINE_ID .
+    - docker push registry.cn-beijing.aliyuncs.com/haoshuwei24/gitlab-java-demo:$CI_PIPELINE_ID
+deploy_k8s_job:
+  image: registry.cn-hangzhou.aliyuncs.com/haoshuwei24/kubectl:1.16.6
+  stage: deploy_k8s
+  tags:
+    - k8s-runner
+  script:
+    - mkdir -p /etc/deploy
+    - echo $kube_config |base64 -d > $KUBECONFIG
+    - sed -i "s/IMAGE_TAG/$CI_PIPELINE_ID/g" deployment.yaml
+    - cat deployment.yaml
+    - kubectl apply -f deployment.yaml
