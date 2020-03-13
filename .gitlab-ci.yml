@@ -23,8 +23,8 @@ docker_build_job:
     - docker login -u $REGISTRY_USERNAME -p $REGISTRY_PASSWORD registry.cn-beijing.aliyuncs.com
     - mkdir target
     - cp /opt/cache/demo.war target/demo.war
-    - docker build -t registry.cn-beijing.aliyuncs.com/haoshuwei24/gitlab-java-demo:$CI_PIPELINE_ID .
-    - docker push registry.cn-beijing.aliyuncs.com/haoshuwei24/gitlab-java-demo:$CI_PIPELINE_ID
+    - docker build -t registry.cn-beijing.aliyuncs.com/haoshuwei24/gitlabci-java-demo:$CI_PIPELINE_ID .
+    - docker push registry.cn-beijing.aliyuncs.com/haoshuwei24/gitlabci-java-demo:$CI_PIPELINE_ID
 deploy_k8s_job:
   image: registry.cn-hangzhou.aliyuncs.com/haoshuwei24/kubectl:1.16.6
   stage: deploy_k8s
